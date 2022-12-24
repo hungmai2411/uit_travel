@@ -40,8 +40,18 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.FormEncodingBuilder;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
 import com.travelappproject.R;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -199,6 +209,7 @@ public class SignInActivity extends AppCompatActivity {
 
     private void SignIn() {
         Intent signInIntent = gsc.getSignInIntent();
+
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
@@ -259,7 +270,7 @@ public class SignInActivity extends AppCompatActivity {
                         if (!task.isSuccessful()) {
                             return;
                         }
-
+                        Log.d("token",task.getResult());
                         token = task.getResult();
                         updateUI(currentUser);
                     }
@@ -309,6 +320,7 @@ public class SignInActivity extends AppCompatActivity {
 
     private void FirebaseGoogleAuth(GoogleSignInAccount account) {
         AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+        Log.d("TAG", "FirebaseGoogleAuth: " + account.getIdToken());
         //here we are checking the Authentication Credential and checking the task is successful or not and display the message
         //based on that.
         mAuth.signInWithCredential(credential).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -316,6 +328,7 @@ public class SignInActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     FirebaseUser firebaseUser = mAuth.getCurrentUser();
+
                     userID = mAuth.getCurrentUser().getUid();
                     Map<String, Object> user1 = new HashMap<>();
                     user1.put("type", "Google");

@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void getCurrentLocation() {
-        //showDialog(this);
+        showDialog(this);
 
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setInterval(10000);
@@ -157,11 +157,14 @@ public class MainActivity extends AppCompatActivity{
                             double longitude = locationResult.getLocations().get(latestLocationIndex).getLongitude();
 
                             state = locationUtils.getState(latitude, longitude);
+
+                            Log.d("state", state);
+
                             hotelViewModel.getList(state);
                             hotelViewModel.getBanner();
                             addControls();
                             addEvents();
-//                            dismissDialog();
+                            dismissDialog();
                         } else {
                             Log.d("111", "null");
                         }

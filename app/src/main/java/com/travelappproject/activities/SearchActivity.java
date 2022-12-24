@@ -21,11 +21,12 @@ import com.algolia.search.DefaultSearchClient;
 import com.algolia.search.SearchClient;
 import com.algolia.search.SearchIndex;
 import com.algolia.search.models.indexing.SearchResult;
-import com.algolia.search.saas.AlgoliaException;
-import com.algolia.search.saas.Client;
-import com.algolia.search.saas.CompletionHandler;
-import com.algolia.search.saas.Index;
-import com.algolia.search.saas.Query;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.travelappproject.R;
 import com.travelappproject.adapter.SearchAdapter;
 import com.travelappproject.model.hotel.Hotel;
@@ -44,7 +45,6 @@ import java.util.concurrent.CompletableFuture;
 public class SearchActivity extends AppCompatActivity {
     ImageView btnBack;
     EditText edtSearch;
-    Client client;
     RecyclerView rcvSearch;
 
 
@@ -52,7 +52,6 @@ public class SearchActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
-        client = new Client("U7G2YLYBKL", "0a97530f04c788c4a0c55be9bc98d85d");
 
         btnBack = findViewById(R.id.btnBack);
         edtSearch = findViewById(R.id.edtSearch);
@@ -96,30 +95,43 @@ public class SearchActivity extends AppCompatActivity {
                 searchList.clear();
                 searchAdapter.notifyDataSetChanged();
 
-                Index index = client.getIndex("hotels");
-                com.algolia.search.saas.Query query = new Query(editable.toString())
-                        .setAttributesToRetrieve("*")
-                        .setHitsPerPage(10)
-                        .setPage(0);
-
-                index.searchAsync(query, new CompletionHandler() {
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                db.collection("Hotels").whereGreaterThanOrEqualTo("name",editable.toString()).addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
-                    public void requestCompleted(@Nullable JSONObject jsonObject, @Nullable AlgoliaException e) {
-                        try {
-                            JSONArray hits = jsonObject.getJSONArray("hits");
-                            List<String> list = new ArrayList<>();
-                            for (int i = 0; i < hits.length(); i++){
-                                JSONObject jsonObject1 = hits.getJSONObject(i);
-                                String name = jsonObject1.getString("name");
-                                String id = jsonObject1.getString("objectID");
-                                searchList.add(new Search(name,id));
-                            }
-                            searchAdapter.notifyDataSetChanged();
-                        } catch (JSONException jsonException) {
-                            jsonException.printStackTrace();
+                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                        for(DocumentSnapshot snap : value.getDocuments()){
+                            Log.d("aaa",snap.get("name").toString());
+                            Log.d("aaa",snap.get("id").toString());
+
+                            String name = snap.get("name").toString();
+                            String id = snap.get("id").toString();
+                            Search search = new Search(name,id);
+                            searchList.add(search);
                         }
+                        searchAdapter.notifyDataSetChanged();
                     }
                 });
+
+
+
+//                index.searchAsync(query, new CompletionHandler() {
+//                    @Override
+//                    public void requestCompleted(@Nullable JSONObject jsonObject, @Nullable AlgoliaException e) {
+//                        try {
+//                            JSONArray hits = jsonObject.getJSONArray("hits");
+//                            List<String> list = new ArrayList<>();
+//                            for (int i = 0; i < hits.length(); i++){
+//                                JSONObject jsonObject1 = hits.getJSONObject(i);
+//                                String name = jsonObject1.getString("name");
+//                                String id = jsonObject1.getString("objectID");
+//                                searchList.add(new Search(name,id));
+//                            }
+//                            searchAdapter.notifyDataSetChanged();
+//                        } catch (JSONException jsonException) {
+//                            jsonException.printStackTrace();
+//                        }
+//                    }
+//                });
             }
         });
     }

@@ -383,6 +383,8 @@ public class Confirm1Activity extends AppCompatActivity {
                                     message.setPriority("high");
                                     message.setData(data);
                                     message.setTo(user.getToken());
+                                    if(user.getToken() != null)
+                                        Log.d("token",user.getToken());
 
                                     Call<Message> repos = sendMessageApi.sendMessage(message);
                                     repos.enqueue(new Callback<Message>() {
